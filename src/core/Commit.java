@@ -25,11 +25,11 @@ public record Commit(
 
     @Override
     public int size() {
-        return asString().getBytes().length;
+        return toString().getBytes().length;
     }
 
     @Override
-    public String asString() {
+    public String toString() {
         StringBuilder content = new StringBuilder();
         content.append("tree ").append(tree.hex()).append("\n");
         for (ObjectId parent : parents) {

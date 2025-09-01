@@ -12,7 +12,7 @@ public record Blob(ObjectId id, byte[] content) implements GitObject {
     }
 
     @Override
-    public String asString() {
+    public String toString() {
         return new String(content);
     }
 }

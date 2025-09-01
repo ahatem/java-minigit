@@ -19,7 +19,7 @@ public class CatFileCommand implements Command<CatFileArgs, String> {
             return switch (input.flag()) {
                 case 't' -> obj.type();
                 case 's' -> String.valueOf(obj.size());
-                case 'p' -> obj.asString();
+                case 'p' -> obj.toString();
                 default -> "Unsupported flag: " + input.flag();
             };
         } catch (Exception e) {

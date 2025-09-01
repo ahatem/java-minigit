@@ -21,7 +21,8 @@ public class Main {
         String command = args[0].toLowerCase();
 
         if (command.equals("init")) {
-            new InitCommand().run(new InitArgs(projectDir));
+            String output = new InitCommand().run(new InitArgs(projectDir));
+            System.out.print(output);
             return;
         }
 

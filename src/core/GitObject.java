@@ -7,6 +7,4 @@ public sealed interface GitObject permits Commit, Tree, Blob {
     String type();
 
     int size();
-
-    String asString();
 }

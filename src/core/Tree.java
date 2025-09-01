@@ -15,7 +15,7 @@ public record Tree(ObjectId id, List<TreeEntry> entries) implements GitObject {
     }
 
     @Override
-    public String asString() {
+    public String toString() {
         return entries.stream().map(TreeEntry::asString).collect(Collectors.joining("\n"));
     }
 }
