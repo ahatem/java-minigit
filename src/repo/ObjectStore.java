@@ -5,8 +5,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -16,6 +18,9 @@ import java.util.zip.InflaterInputStream;
 import core.Blob;
 import core.Commit;
 import core.Commit.Author;
+import utils.CompressionUtils;
+import utils.HashUtils;
+import utils.HexUtils;
 import core.GitObject;
 import core.ObjectId;
 import core.Tree;
@@ -29,9 +34,33 @@ public class ObjectStore {
     }
 
     public GitObject readObject(String hash) throws IOException {
-        Path objectPath = objectsDir.resolve(hash.substring(0, 2)).resolve(hash.substring(2));
-        byte[] decompressedData = decompressObject(objectPath);
+        Path objectPath = objectHashToPath(hash);
+        byte[] decompressedData = CompressionUtils.decompress(objectPath);
         return parseObject(hash, decompressedData);
+    }
+
+    public String writeObject(GitObject object) throws IOException {
+        switch (object) {
+            case Blob blob -> {
+
+                byte[] sha1 = HashUtils.sha1(blob.toRaw());
+                String hash = HexUtils.bytesToHex(sha1);
+
+                Path objectPath = objectHashToPath(hash);
+
+                if (!Files.exists(objectPath.getParent())) {
+                    Files.createDirectories(objectPath.getParent());
+                }
+
+                if (!Files.exists(objectPath)) {
+                    byte[] compressedData = CompressionUtils.compress(blob.toRaw());
+                    Files.write(objectPath, compressedData);
+                }
+
+                return hash;
+            }
+            default -> throw new IOException("Not supported yet");
+        }
     }
 
     // Git format: <type> <size>\0<content>
@@ -83,7 +112,7 @@ public class ObjectStore {
 
         boolean inMessage = false;
         for (String line : lines) {
-            if (line.startsWith("tree ")) {  // tree <hash>
+            if (line.startsWith("tree ")) { // tree <hash>
                 treeId = new ObjectId(line.substring(5));
             } else if (line.startsWith("parent ")) { // parent <hash>
                 parents.add(new ObjectId(line.substring(7)));
@@ -152,7 +181,7 @@ public class ObjectStore {
 
             byte[] hashBytes = new byte[20];
             buffer.get(hashBytes);
-            String hash = bytesToHex(hashBytes);
+            String hash = HexUtils.bytesToHex(hashBytes);
 
             entries.add(new TreeEntry(name.toString(), mode.toString(), new ObjectId(hash)));
         }
@@ -160,28 +189,9 @@ public class ObjectStore {
         return entries;
     }
 
-    private static String bytesToHex(byte[] bytes) {
-        StringBuilder sb = new StringBuilder(bytes.length * 2);
-        for (byte b : bytes) {
-            sb.append(String.format("%02x", b & 0xFF));
-        }
-        return sb.toString();
-    }
-
-    private static byte[] decompressObject(Path objectPath) throws IOException {
-        try (InputStream rawInput = Files.newInputStream(objectPath);
-                BufferedInputStream bufferedInput = new BufferedInputStream(rawInput);
-                InflaterInputStream decompressedInput = new InflaterInputStream(bufferedInput);
-                ByteArrayOutputStream output = new ByteArrayOutputStream()) {
-
-            byte[] buffer = new byte[8192];
-            int bytesRead;
-
-            while ((bytesRead = decompressedInput.read(buffer)) != -1) {
-                output.write(buffer, 0, bytesRead);
-            }
-
-            return output.toByteArray();
-        }
+    private Path objectHashToPath(String hash) {
+        String dir = hash.substring(0, 2);
+        String file = hash.substring(2);
+        return objectsDir.resolve(dir).resolve(file);
     }
 }
