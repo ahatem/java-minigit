@@ -1,0 +1,48 @@
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Arrays;
+
+import commands.catfile.CatFileArgs;
+import commands.catfile.CatFileCommand;
+import commands.init.InitArgs;
+import commands.init.InitCommand;
+import repo.Repository;
+
+public class Main {
+    private static final Path projectDir = Paths.get("testing-git");
+
+    public static void main(String[] args) throws IOException {
+        if (args.length == 0) {
+            printUsage();
+            return;
+        }
+
+        String command = args[0].toLowerCase();
+
+        if (command.equals("init")) {
+            new InitCommand().run(new InitArgs(projectDir));
+            return;
+        }
+
+        Repository repo = Repository.open(projectDir);
+        switch (command) {
+            case "cat-file" -> {
+                char flag = args[1].charAt(1);
+                String objectHash = args[2];
+                String output = new CatFileCommand(repo).run(new CatFileArgs(flag, objectHash));
+                System.out.print(output);
+            }
+            default -> {
+                System.out.println("Args: " + Arrays.toString(args));
+            }
+        }
+    }
+
+    private static void printUsage() {
+        System.out.println("Usage: minigit <command> [options]");
+        System.out.println("Commands:");
+        System.out.println("  init");
+        System.out.println("  cat-file (-p | -t | -s) <object>");
+    }
+}
