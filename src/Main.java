@@ -1,10 +1,14 @@
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 
 import commands.catfile.CatFileArgs;
 import commands.catfile.CatFileCommand;
+import commands.hashobject.HashObjectArgs;
+import commands.hashobject.HashObjectCommand;
 import commands.init.InitArgs;
 import commands.init.InitCommand;
 import repo.Repository;
@@ -32,6 +36,20 @@ public class Main {
                 char flag = args[1].charAt(1);
                 String objectHash = args[2];
                 String output = new CatFileCommand(repo).run(new CatFileArgs(flag, objectHash));
+                System.out.print(output);
+            }
+            case "hash-object" -> {
+                String flag = args[1];
+                String filePath = args[1];
+
+                boolean writeToDisk = false;
+                if (flag.equals("-w")) {
+                    writeToDisk = true;
+                    filePath = args[2];
+                }
+
+                HashObjectArgs hoArgs = new HashObjectArgs(writeToDisk, filePath);
+                String output = new HashObjectCommand(repo).run(hoArgs);
                 System.out.print(output);
             }
             default -> {
