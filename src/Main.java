@@ -9,6 +9,8 @@ import commands.hashobject.HashObjectArgs;
 import commands.hashobject.HashObjectCommand;
 import commands.init.InitArgs;
 import commands.init.InitCommand;
+import commands.lstree.LsTreeArgs;
+import commands.lstree.LsTreeCommand;
 import repo.Repository;
 
 public class Main {
@@ -48,6 +50,19 @@ public class Main {
 
                 HashObjectArgs hoArgs = new HashObjectArgs(writeToDisk, filePath);
                 String output = new HashObjectCommand(repo).run(hoArgs);
+                System.out.print(output);
+            }
+            case "ls-tree" -> {
+                String flag = args[1];
+                String objectHash = args[1];
+
+                boolean onlyFileNames = false;
+                if (flag.equals("--name-only")) {
+                    onlyFileNames = true;
+                    objectHash = args[2];
+                }
+
+                String output = new LsTreeCommand(repo).run(new LsTreeArgs(onlyFileNames, objectHash));
                 System.out.print(output);
             }
             default -> {
