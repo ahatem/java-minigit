@@ -5,12 +5,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 public class Repository {
-    private final Path workTree;
+    private final WorkTree workTree;
     private final Path gitDir;
     private final ObjectStore objectStore;
 
-    private Repository(Path workTree, Path gitDir) {
-        this.workTree = workTree;
+    private Repository(Path workTreeDir, Path gitDir) {
+        this.workTree = new WorkTree(workTreeDir);
         this.gitDir = gitDir;
         this.objectStore = new ObjectStore(gitDir);
     }
@@ -32,12 +32,12 @@ public class Repository {
         Files.createDirectories(gitDir.resolve("objects"));
         Files.createDirectories(gitDir.resolve("refs/heads"));
 
-        Files.writeString(gitDir.resolve("HEAD"), "ref: refs/heads/main\n");
+        Files.writeString(gitDir.resolve("HEAD"), "ref: refs/heads/master\n");
 
         return new Repository(dir, gitDir);
     }
 
-    public Path workTree() {
+    public WorkTree workTree() {
         return workTree;
     }
 
