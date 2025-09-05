@@ -31,7 +31,8 @@ public class Repository {
 
         Files.createDirectories(gitDir.resolve("objects"));
         Files.createDirectories(gitDir.resolve("refs/heads"));
-
+        
+        Files.createFile(gitDir.resolve("index"));
         Files.writeString(gitDir.resolve("HEAD"), "ref: refs/heads/master\n");
 
         return new Repository(dir, gitDir);
